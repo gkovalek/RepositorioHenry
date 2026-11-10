@@ -1,5 +1,10 @@
-function App() {
-  return <div>MateCode — Task Manager</div>
-}
+import { AuthProvider } from './features/auth/AuthContext'
+import AppRouter from './routes/AppRouter'
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  )
+}
