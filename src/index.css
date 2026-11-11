@@ -1,16 +1,86 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Base resets live in the `base` layer so Tailwind utilities (p-*, m-*,
+   space-y-*) can override them. Unlayered rules beat every layer in v4. */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
 }
 
-body {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* ---------------------------------------------------------------------------
+   Login staged reveal — transform/opacity only, one-shot on mount.
+   Card enters first; children with .reveal-item stagger in via --i.
+   --------------------------------------------------------------------------- */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --reveal-card-duration: 700ms;
+  --reveal-item-duration: 500ms;
+  --reveal-item-start: 220ms; /* items begin once the card is mostly settled */
+  --reveal-item-stagger: 70ms;
 }
 
-#root {
-  min-height: 100svh;
+@keyframes reveal-card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-item-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-fade-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal-card {
+  animation: reveal-card-in var(--reveal-card-duration) var(--ease-out-quart) both;
+}
+
+.reveal-item {
+  animation: reveal-item-in var(--reveal-item-duration) var(--ease-out-quart) both;
+  animation-delay: calc(var(--reveal-item-start) + var(--i, 0) * var(--reveal-item-stagger));
+}
+
+.reveal-alert {
+  animation: reveal-fade-in 240ms var(--ease-out-quart) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-card,
+  .reveal-item,
+  .reveal-alert {
+    animation: none;
+  }
 }
