@@ -96,8 +96,7 @@ tests/
 
 ## URL de producción
 
-<!-- Se actualiza tras el deploy en Vercel -->
-_Pendiente de deploy_
+https://m4-gerardo-kovalek.vercel.app
 
 ## Tests
 
