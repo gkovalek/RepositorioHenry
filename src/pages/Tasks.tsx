@@ -12,11 +12,11 @@ export default function Tasks() {
 
   if (!user) return null
 
+  const pending = tasks.filter((t) => !t.completed)
+  const done = tasks.filter((t) => t.completed)
+
   async function handleSendSummary() {
     setEmailStatus('sending')
-    const pending = tasks.filter((t) => !t.completed)
-    const done = tasks.filter((t) => t.completed)
-
     const summary =
       `Resumen de tareas — ${new Date().toLocaleDateString('es-AR')}\n\n` +
       `Pendientes (${pending.length}):\n` +
@@ -40,37 +40,38 @@ export default function Tasks() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Mis tareas</h2>
+      <main className="max-w-3xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-bold text-slate-800">Mis tareas</h1>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {pending.length} pendiente{pending.length !== 1 ? 's' : ''} · {done.length} completada{done.length !== 1 ? 's' : ''}
+            </p>
+          </div>
           <button
             onClick={handleSendSummary}
             disabled={emailStatus === 'sending' || tasks.length === 0}
-            className="text-sm bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+            className={`text-sm font-semibold px-4 py-2 rounded-lg transition-all shrink-0 ${
+              emailStatus === 'sent'
+                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                : emailStatus === 'error'
+                ? 'bg-red-100 text-red-700 border border-red-200'
+                : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40'
+            }`}
           >
             {emailStatus === 'sending' && 'Enviando…'}
             {emailStatus === 'sent' && '✓ Enviado'}
-            {emailStatus === 'error' && 'Error al enviar'}
+            {emailStatus === 'error' && '✕ Error'}
             {emailStatus === 'idle' && 'Enviar resumen'}
           </button>
         </div>
 
-        {emailStatus === 'sent' && (
-          <div className="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm">
-            Resumen enviado por email correctamente.
-          </div>
-        )}
-        {emailStatus === 'error' && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
-            No se pudo enviar el email. Verificá la configuración de AWS SES.
-          </div>
-        )}
-
         <TodoForm userId={user.uid} />
         <TodoList tasks={tasks} userId={user.uid} loading={loading} error={error} />
       </main>
-    </>
+    </div>
   )
 }
