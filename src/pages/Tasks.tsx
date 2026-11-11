@@ -20,18 +20,16 @@ export default function Tasks() {
 
   async function handleSendSummary() {
     setEmailStatus('sending')
-    const summary =
-      `Resumen de tareas — ${new Date().toLocaleDateString('es-AR')}\n\n` +
-      `Pendientes (${pending.length}):\n` +
-      pending.map((t) => `• ${t.title}`).join('\n') +
-      `\n\nCompletadas (${done.length}):\n` +
-      done.map((t) => `✓ ${t.title}`).join('\n')
-
     try {
       const res = await fetch('/api/sendEmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ summary, userEmail: user!.email }),
+        body: JSON.stringify({
+          pending: pending.map((t) => t.title),
+          done: done.map((t) => t.title),
+          date: new Date().toLocaleDateString('es-AR'),
+          userEmail: user!.email,
+        }),
       })
       if (!res.ok) throw new Error()
       setEmailStatus('sent')
