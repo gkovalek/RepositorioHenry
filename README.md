@@ -1,4 +1,4 @@
-# MateCode Tasks
+# MemoryClip
 
 Gestor de tareas personal con autenticación, persistencia en la nube y notificaciones por email.
 
@@ -125,7 +125,7 @@ npm run test:run
 
 ## Uso de IA
 
-Este proyecto fue desarrollado con asistencia de Claude (Anthropic) como copiloto. Las decisiones de arquitectura, estructura de carpetas, stack tecnológico y lógica de negocio fueron definidas en la consigna del proyecto. Claude asistió en:
+Este proyecto (MemoryClip) fue desarrollado con asistencia de Claude (Anthropic) como copiloto. Las decisiones de arquitectura, estructura de carpetas, stack tecnológico y lógica de negocio fueron definidas en la consigna del proyecto. Claude asistió en:
 
 - Implementación de los hitos según la especificación
 - Resolución de errores de configuración (Rolldown en Windows, ESM/CJS en Vitest, `type User` de Firebase)

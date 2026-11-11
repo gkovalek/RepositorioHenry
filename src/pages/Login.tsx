@@ -28,7 +28,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">MateCode Tasks</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">MemoryClip</h1>
 
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">

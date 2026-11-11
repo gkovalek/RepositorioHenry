@@ -33,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Source: from,
         Destination: { ToAddresses: [to] },
         Message: {
-          Subject: { Data: 'MateCode Tasks — Resumen de tareas', Charset: 'UTF-8' },
+          Subject: { Data: 'MemoryClip — Resumen de tareas', Charset: 'UTF-8' },
           Body: {
             Text: { Data: summary, Charset: 'UTF-8' },
           },

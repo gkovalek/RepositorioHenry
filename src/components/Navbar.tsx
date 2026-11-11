@@ -5,7 +5,7 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-      <span className="font-bold text-blue-600 text-lg">MateCode Tasks</span>
+      <span className="font-bold text-blue-600 text-lg">MemoryClip</span>
       {user && (
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600 hidden sm:block">{user.email}</span>
