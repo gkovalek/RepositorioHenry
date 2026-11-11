@@ -1,35 +1,71 @@
-# MemoryClip
+# MemoryClip — Gestor estratégico de tareas
 
-Gestor de tareas personal con autenticación, persistencia en la nube y notificaciones por email.
+Aplicación web SPA de gestión de tareas con autenticación, persistencia en la nube y notificaciones por email.
 
-## Stack
+**URL de producción:** https://m4-gerardo-kovalek.vercel.app
 
-| Capa | Tecnología |
-|---|---|
-| Frontend | React 18 + TypeScript + Vite |
-| Routing | React Router v7 |
-| Auth / DB | Firebase Auth + Cloud Firestore |
-| Email | AWS SES via Vercel Functions |
-| Estilos | Tailwind CSS v4 |
-| Testing | Vitest v2 + React Testing Library |
-| Deploy | Vercel |
+---
 
-## Instalación local
+## Stack tecnológico
 
-```bash
-git clone <url-del-repo>
-cd _CarpetaHenry_
-npm install
-cp .env.example .env   # completar con tus valores
-npm run dev
+- **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS v4
+- **Auth & DB:** Firebase Authentication + Cloud Firestore
+- **Email:** AWS SES invocado a través de Vercel Functions
+- **Deploy:** Vercel
+- **Testing:** Vitest + React Testing Library
+
+---
+
+## Funcionalidades
+
+- Registro y login con email/password
+- Rutas privadas protegidas (redirige a `/login` si no hay sesión)
+- CRUD completo de tareas: crear, listar, editar, eliminar y marcar como completada
+- Persistencia por usuario en Firestore (cada usuario solo ve sus propias tareas)
+- Envío de resumen de tareas por email en formato HTML con diseño dark
+
+---
+
+## Estructura del proyecto
+
 ```
+project-root/
+├── api/
+│   └── sendEmail.ts          # Vercel Function — envío de email con AWS SES
+├── src/
+│   ├── pages/                # Login, Register, Tasks
+│   ├── components/           # Navbar, TodoForm, TodoList, TodoItem, ParticleField
+│   ├── features/auth/        # AuthContext (proveedor de sesión)
+│   ├── services/             # firebase.ts, firestore.ts (CRUD)
+│   ├── routes/               # AppRouter, ProtectedRoute
+│   ├── hooks/                # useTasks (suscripción en tiempo real a Firestore)
+│   ├── types/                # Task interface
+│   └── utils/                # errorMessages (traducción de errores de Firebase)
+├── tests/
+│   ├── __mocks__/            # Mock de Firebase para tests
+│   ├── components/           # TodoForm.test, TodoList.test
+│   └── unit/                 # errorMessages.test, firestore.test
+├── .env.example              # Variables de entorno requeridas (sin valores)
+└── README.md
+```
+
+---
+
+## Decisiones arquitectónicas
+
+- **Firestore subcollections:** las tareas se guardan en `users/{uid}/tasks` para garantizar aislamiento total por usuario sin necesidad de filtros adicionales.
+- **Vercel Functions para SES:** los secretos de AWS nunca llegan al bundle del frontend; la función actúa como proxy seguro.
+- **AuthContext:** un único proveedor de sesión que expone `user` y `signOut` a toda la app, evitando prop drilling.
+- **useTasks hook:** usa `onSnapshot` de Firestore para escuchar cambios en tiempo real, sin necesidad de refrescar manualmente.
+
+---
 
 ## Variables de entorno
 
-Copiar `.env.example` a `.env` y completar:
+Crear un archivo `.env` en la raíz basándose en `.env.example`:
 
-```
-# Firebase — expuestos al browser (prefijo VITE_)
+```env
+# Firebase (expuestas al frontend via VITE_)
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
@@ -37,97 +73,78 @@ VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 
-# AWS SES — solo en servidor (sin prefijo VITE_)
+# AWS SES — solo en Vercel Functions (sin VITE_)
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
-AWS_REGION=us-east-1
-SES_FROM_EMAIL=        # email verificado en SES
-SES_TO_EMAIL=          # email destino (opcional; si está vacío usa el email del usuario)
+AWS_REGION=
+SES_FROM_EMAIL=
+SES_TO_EMAIL=      # opcional; si se omite, se usa el email del usuario logueado
 ```
 
-> **Seguridad**: `.env` está en `.gitignore`. Las credenciales AWS nunca llegan al frontend.
+> Las variables `AWS_*` y `SES_*` **nunca** deben tener el prefijo `VITE_` — de lo contrario quedarían expuestas en el bundle del cliente.
 
-## Comandos
+---
+
+## Instalación local
 
 ```bash
-npm run dev        # servidor de desarrollo
-npm run build      # build de producción
-npm run test:run   # tests (12 tests, 4 suites)
-npm run lint       # linter
+git clone https://github.com/gkovalek/RepositorioHenry.git
+cd RepositorioHenry
+npm install
+cp .env.example .env   # completar con tus credenciales
+npm run dev            # http://localhost:5173
 ```
 
-## Estructura del proyecto
+Para probar las Vercel Functions localmente:
 
-```
-src/
-├─ pages/           # Login, Register, Tasks
-├─ components/      # TodoForm, TodoList, TodoItem, Navbar
-├─ features/auth/   # AuthContext, AuthProvider, useAuth
-├─ services/        # firebase.ts, firestore.ts
-├─ routes/          # AppRouter.tsx, ProtectedRoute.tsx
-├─ hooks/           # useTasks.ts
-├─ types/           # task.ts
-└─ utils/           # errorMessages.ts
-api/
-└─ sendEmail.ts     # Vercel Function (AWS SES)
-tests/
-├─ unit/            # errorMessages, firestore
-└─ components/      # TodoForm, TodoList
+```bash
+npm install -g vercel
+vercel dev             # http://localhost:3000
 ```
 
-## Funcionalidades
-
-- **Autenticación**: registro y login con email/password via Firebase Auth
-- **Rutas protegidas**: `ProtectedRoute` redirige a `/login` si no hay sesión
-- **CRUD de tareas**: crear, editar inline, marcar completada, eliminar
-- **Tiempo real**: suscripción `onSnapshot` actualiza la lista sin recargar
-- **Seguridad Firestore**: reglas que restringen cada usuario a sus propias tareas
-- **Email**: botón "Enviar resumen" genera un texto con pendientes y completadas y lo envía via SES
-
-## Flujo de envío de email
-
-1. Usuario pulsa "Enviar resumen" en `/tasks`
-2. Frontend hace `POST /api/sendEmail` con `{ summary, userEmail }`
-3. Vercel Function (`api/sendEmail.ts`) instancia `SESClient` con las credenciales del entorno
-4. SES envía el email desde `SES_FROM_EMAIL` hacia `SES_TO_EMAIL` (o el email del usuario)
-5. Frontend muestra estado `sending → sent | error`
-
-> En modo sandbox de AWS SES, tanto el remitente como el destinatario deben estar verificados.
-
-## URL de producción
-
-https://m4-gerardo-kovalek.vercel.app
-
-> También accesible en: https://repositorio-henry-pi.vercel.app
+---
 
 ## Tests
 
-12 tests en 4 suites:
-
-- `errorMessages.test.ts` — mapeo de códigos Firebase a mensajes en español
-- `firestore.test.ts` — createTask, toggleComplete, deleteTask
-- `TodoForm.test.tsx` — render, submit con valores, guard de título vacío
-- `TodoList.test.tsx` — render lista, loading, empty state, error
-
 ```bash
-npm run test:run
-# Tests  12 passed (12)
+npm run test         # modo watch
+npm run test:run     # ejecución única
 ```
 
-## Decisiones arquitectónicas
+Cobertura:
+- **Tests de componentes:** `TodoForm`, `TodoList`
+- **Tests unitarios:** `errorMessages`, operaciones de `firestore`
+- **Mocks:** Firebase está mockeado para aislar los tests de servicios externos
 
-- **Tailwind CSS v4** vía plugin `@tailwindcss/vite` (sin postcss)
-- **Context API** para auth global (sin Redux/Zustand — scope del proyecto no lo justifica)
-- **Subcollección Firestore** `users/{uid}/tasks/{id}` para aislamiento por usuario
-- **`vi.hoisted()`** para mocks de Firestore (Vitest hoist `vi.mock` al tope del archivo)
-- **happy-dom** como entorno de test (evita conflicto ESM de `@aws-sdk/client-ses` con jsdom)
-- **Vercel Functions** en `/api` para mantener credenciales AWS exclusivamente server-side
+---
 
-## Uso de IA
+## Flujo de envío de emails
 
-Este proyecto (MemoryClip) fue desarrollado con asistencia de Claude (Anthropic) como copiloto. Las decisiones de arquitectura, estructura de carpetas, stack tecnológico y lógica de negocio fueron definidas en la consigna del proyecto. Claude asistió en:
+```
+Usuario (browser)
+      │
+      │  POST /api/sendEmail  { pending[], done[], date, userEmail }
+      ▼
+Vercel Function (api/sendEmail.ts)
+      │  Lee AWS_* y SES_FROM_EMAIL de las variables de entorno
+      │  Construye un email HTML con diseño dark (slate/indigo)
+      ▼
+AWS SES (us-east-2)
+      │  Envía desde SES_FROM_EMAIL hacia userEmail (o SES_TO_EMAIL si está definida)
+      ▼
+Bandeja del usuario
+```
 
-- Implementación de los hitos según la especificación
-- Resolución de errores de configuración (Rolldown en Windows, ESM/CJS en Vitest, `type User` de Firebase)
-- Configuración de Firestore security rules via Firebase Console
-- Escritura de tests con mocks de Firebase
+Los secretos de AWS **solo existen en el servidor** (Vercel Functions). El frontend únicamente envía el contenido del resumen y el email del usuario autenticado.
+
+---
+
+## Integración de IA en el proceso de desarrollo
+
+Utilicé Claude (Claude Code) como asistente a lo largo de todo el proyecto. Las situaciones donde fue más efectivo:
+
+- **Debugging de configuración:** diagnosticó el problema de AWS SES Sandbox (emails no verificados) y guió el proceso paso a paso a través de las capturas de pantalla de la consola de AWS y Vercel.
+- **Generación de HTML para emails:** a partir de los colores Tailwind de la app (`slate-950`, `indigo-500`, `emerald-400`) construyó un template HTML compatible con clientes de email, usando inline styles.
+- **Comprensión de errores de Firebase:** tradujo mensajes de error técnicos de Firebase Auth a mensajes amigables en español.
+
+**Patrón más valioso descubierto:** darle contexto visual (screenshots) además de texto permitió diagnósticos mucho más precisos que solo describir el problema en palabras. El modelo pudo ver exactamente el estado de la consola de AWS y señalar el problema real (región incorrecta, campos vacíos) sin necesidad de suposiciones.
